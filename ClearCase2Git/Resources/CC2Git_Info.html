@@ -1,0 +1,392 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml/DTD/xhtml-transitional.dtd">
+
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html"; charset=utf-8" />
+    <title>ClearCase2Git Tutorial</title>
+</head>
+<body>
+    <h1> ClearCase2Git Tutorial</h1>
+    <center>
+        <img id="logo" src="CC2Git_Logo.jpg" alt="ClearCase2Git Logo" />
+    </center>
+
+    <h2 id="intro_part">Introduction</h2>
+    <p>
+        This tool was created from the insight that changing from ClearCase to Git would take an immense time if it was done manually.
+        SAAB AB has used ClearCase as a version handling tool for project related source code and other data for 20-30 years.
+        The sheer amount of data stored in ClearCase are daunting and the task of moving everything manually to Git and other tools is mindboggling.<br />
+        So, a tool for automated, or semi-automated, transfer of the project data was created.<br />
+        Along the way during development a number of "nice-to-have" functionality were discovered and requested.
+        This page shall describe the functionality in the tool and how to use it.
+    </p>
+
+    <h2 id="prereq_part">Prerequisite</h2>
+    <p>
+        In order to use the ClearCase2Git tool the user needs to be somewhat familiar with Git, ClearCase, and any other target tools for the ClearCase content.
+        To support a user that is not familiar with Git and/or ClearCase there are very brief description of the fundamentals of the tools in
+        "<a href="#CCTool_part">The ClearCase Tool</a>" and "<a href="#GitTool_part">The Git Tool</a>" along with "<a href="#WrpProcDescr_part">The work process</a>", below.<br />
+        Basic requirement in order for ClearCase2Git to work are:
+        <ul>
+            <li>Connection to the source ClearCase server.</li>
+            <li>Existing dynamic views with mapped drives.</li>
+            <li>Connection to the target Git server.</li>
+            <li>Connection to any target environment for separated data.</li>
+        </ul>
+        Lacking any of the requirement above will inhibit that part of the program.
+    </p>
+    <h2 id="CCTool_part">The ClearCase Tool</h2>
+    <p>
+        ClearCase is a software configuration management tool used for version control.
+        It was initiaially released by Atria Software in 1992 but has since been consolidated into the Rational and IBM sphere.<br />
+        The tool supports the operative platforms AIX, HP-UX, Linux, Solaris, and Windows. The version handling is based on a multi-version file system,
+        meaning that each file and folder in a structure may consist in multiple versions. The multiversion files can be branched for development and
+        branches can be merged or kept separate.<br />
+        In ClearCase each file or directory is version handled separately and identified through views. A view pinpoints what version of the file or directory
+        that should be visible. A view may pinpoint a development step of a certain file, a labeled set of files, or latest in any separate branch.<br />
+        Depending on the CM strategy either the labels or a view is significant for pinpointing a delivery.
+    </p>
+    <h2 id="GitTool_part">The Git Tool</h2>
+    <p>
+        Git is a DevOps tool used for source code management. It was initially released by Linus Torvalds in 2005. There are a number of useable interfaces
+        to Git, interfaces such as GitLab or Bitbucket, but the base functionality is located in the Git software.<br />
+        The tool supports Linux, macOS, Solaris, AIX, and Windows. The tool is a distributed version control system, that means that the user essentially copies
+        a complete file system to his/her own work area where he/she works on the code before adding, committing, and pushing the changes to a remote repository.<br />
+        In Git the "commits" are version controlled, labelled, and possibly tagged. A single file is never labelled or tagged.
+    </p>
+    <h2 id="ClearCase2Git_tool_part">The ClearCase2Git tool</h2>
+    <p>
+        The ClearCase2Git tool is designed to transfer the selected VOB files based on a set view or label, either as a single transfer or as a streamed transfer.
+        Transferring the data is done following the Git work strategy, with the addition that the files are fetched from a ClearCase.
+        <div style="text-align: left;">
+            <img id="MoveStrategy" src="MovementStrategy.jpg" alt="Transfer strategy" />
+        </div>
+        What files to fetch from ClearCase are identified by the user within the ClearCase2Git tool. Also, how far to transfer the files, within the tranfer chain
+        depicted above, are defined by the user. As is eventual separation of different data types, and when possible, where to store them. Depending on the users
+        selection the transfer is singular or streamed, for instance there is no use in streaming a simple copy since they would overwrite the previous transfer.
+        The view used in ClearCase to pick out what files to transfer is changed according to user selection, and altered with each iteration if a streamed
+        transfer is selected.
+        <div style="text-align: left;">
+            <img id="WorkFlow" src="CC2Git_Flow.jpg" alt="Work Flow" />
+        </div>
+        The different program parts are:
+        <ul>
+            <li><a href="#Tool_Sub_LogIn_part">Log in handling.</a></li>
+            <li><a href="#Tool_Sub_MainWin_part">Main window handling.</a></li>
+            <li><a href="#aboutwin">Help window handling.</a></li>
+            <li><a href="#Tool_Sub_AddRepo_part">Add repo handling.</a></li>
+            <li><a href="#Tool_Sub_AddCrtView_part">Add or Create view handling.</a></li>
+        </ul>
+        Each of these program parts, and their sup-parts, are discribed below.<br />
+    </p>
+    <h3 id="Tool_Sub_LogIn_part">Log in window</h3>
+    <p>
+        Because the tool connects to ClearCase and Git it needs the user's credentials for the interface. It also needs the Git Website and ClearCase server
+        to be set. Setting the Git master project to work with is optional but existing Git master projects are neccessary. These data are stored in the
+        user's datafile that is fetched when the user enters id and password.<br />
+        The user interface for this stage is shown below.<br />
+        <img id="loginwin" src="LoginWinGui_Startup.jpg" alt="Log in window" /><br />
+        The "User Id" text box shall contain the user's corporate identity. If a user identity that is not previously entered into the program is given
+        the "New user" bullet box will be selected, the rest of the data input will be set to receive data, and the right-hand button on the bottom row
+        will be set to "Create". If a previously entered user id is given the "New user" bullet box will change text to "Edit user", selecting this box
+        will set the rest of the data input to receive data and the right-hand button on the bottom row to "Save Data". <br /><br />
+        The "Password" text box shall contain the user's password that is used in Git and ClearCase. Viewing and hiding the entered password can be toggled
+        using the "all seeing eye" button on the right.<br /><br />
+        The "Full Name" text box shall contain the user's name and the "Email" text box shall contain the user's corporate email.<br /><br />
+        The "Git Web" information area can be a combo box or a text box, the combo box is used to select an existing Git web from the list or to select
+        the "Add Git Web..."-option. Selecting the "Add Git Web..."-option will change the "Git Web" information area to contain a text box where the
+        new Git web root path can be entered. Entering a singular symbol into the text box will activate the middle button on the bottom row buttom that
+        then will read "Add Git Web".<br /><br />
+        The "CC Srvs" information area can be a combo box or a text box, the combo box is used to select an existing ClearCase server from the list
+        or to select the "Add CC Server..."-option. Selecting the "Add CC Server..."-option will change the "CC Srvs" information area to contain a
+        text box where the new ClearCase server identity can be entered. Entering a singular symbol into the text box will activate the middle button
+        on the bottom row buttom that then will read "Add Server".<br /><br />
+        The "Git M.Proj." information area can be a combo box or a text box, the combo box is used to select an existing Git master project from the
+        list or to select the "Add Project..."-option. Selecting the "Add Project..."-option will change the "Git M.Proj." information area to contain
+        a text box where the new Git master project can be entered. Entering a singular symbol into the text box will activate the middle button on the
+        bottom row that then will read "Add Project".<br /><br />
+        The "Exit" button will close the window with the user unverified.<br /><br />
+        The middle button on the bottom row is used to edit "Git Web"-, "CC Srvs", and "Git M.Proj."-data, the text will change depending on what data
+        is being edited. The button text will contain a "Add" or "Remove" combined with the edited data.<br /><br />
+        The right-hand button on the bottom row is used to check, create, or save the entered user data along with log in when correct data has been
+        entered and selected.
+    </p>
+    <h3 id="Tool_Sub_MainWin_part">Main window</h3>
+    <p>
+        The main window is divided into five areas, "top menu", "ClearCase settings", "Git settings", "Separation handling", and "Process handling".<br />
+        <div style="text-align: left;">
+            <img id="progparts" src="ProgramParts.jpg" alt="Program parts" usemap="#ProgRegions" />
+            <map name="ProgRegions">
+                <area shape="rect" coords="8,30,202,46" alt="Top menu area" href="#MainWin_Sub_TopMenu" />
+                <area shape="rect" coords="20,55,222,276" alt="ClearCase Setting area" href="#MainWin_ClearCaseSettings" />
+                <area shape="rect" coords="230,52,445,276" alt="Git Version Setting area" href="#MainWin_GitVerSettings" />
+                <area shape="rect" coords="16,290,452,351" alt="Separation Handling area" href="#SepHdlReg" />
+                <area shape="rect" coords="10,357,461,410" alt="Process Handling area" href="#WrkProc_part" />
+            </map>
+        </div>
+        The different interfaces will be activated when it is appropriate to set or enter data into them. A non-active interface is lacking essential data
+        from a previous step.<br />Each area is described in detail in the following chapters.
+    </p>
+    <h4 id="MainWin_Sub_TopMenu">Top menu</h4>
+    <p>
+        The top menu contains four different areas, "File", "ClearCase", "Git related", and "Help".<br />
+    </p>
+    <h5 id="TopMenu_File">File</h5>
+    <p>
+        "File" menu contains the normal Open-, Save-, and Close-session selections that works as in any standard tool. Each of these selections has a
+        short command connected to them.
+    </p>
+    <h5 id="TopMenu_ClearCase">ClearCase</h5>
+    <p>
+        The ClearCase menu presents the possible ClearCase versions for this tool. Selecting the correct version sets specific parameters for that
+        version and enables the "ClearCase Settings" area.
+    </p>
+    <h5 id="TopMenu_GitRel">Git Related</h5>
+    <p>
+        The Git Related menu presents a sub-menu with possible Git versions for this tool. Selecting the correct version sets specific parameters for
+        that version and enables the "Git Settings" area.<br />A Web interface sub-menu is inactivated since the tool does not really work with
+        web interface tools but directly with Git.<br />A transfer protocol sub-menu enables the selection between using SSH or HTML as the protocol
+        for transferring files to or from the remote repository. The support functions used within the program does not yet support SSH, thus HTML is
+        set as default and should be the used protocol.
+    </p>
+    <h5 id="TopMenu_Help">Help</h5>
+    <p>
+        The help menu contains "Documentation" and "About".<br />Selecting the "Documentation" option starts this web page.<br />Selecting the "About" option
+        opens an about window as the one presented below.<br />
+        <div style="text-align: left;">
+            <img id="aboutwin" src="AboutWindow.jpg" alt="About window" />
+        </div>
+        The about window presents a very brief introduction to the tool, what version is active and who made it, along with email to the author.<br />The three
+        buttons on the bottom row are "Contact", "Documentation", and "Exit".<br />"Contact" starts an email conversation with the author if the current
+        environment has an email server connection.<br />"Documentation" starts this presentation.<br />"Exit" closes the window.
+    </p>
+    <h3 id="MainWin_ClearCaseSettings">ClearCase settings area</h3>
+    <p>
+        The "ClearCase settings" area handles necessary settings for ClearCase.
+        <div style="text-align: left;">
+            <img id="ClearCaseArea" src="ClearCaseSettingsPart.jpg" alt="ClearCase Settings" />
+        </div>
+        The "Region" combo box requires the user select if the ClearCase operative environment is Windows or Linux.<br /><i>
+            Currently only Windows operative
+            environment is operative in this tool and other environment may be added since ClearCase supports more environments.
+        </i><br /><br />The "Drive" combo box requires the user to pinpoint the mapped drive that is used for the dynamic ClearCase view that is to be
+        used for transfer.<br /><br />The "VOB" combo box requires the user to select the project level VOB that contains the source data.<br /><br />
+        The "View" and "Label" combo boxes are activated simultaneously. "View" contains the existing views in the selected drive and "Label" contains the 
+        existing labels in the selected VOB. These are used to select methods for identifying what data is to be transferred from the selected VOB. In some 
+        projects the CM handling is based on "delivery views" and in other it is based on labelling. This makes it necessary to allow selecting both views 
+        and labels for entering into the work list. If a view is selected the name may need to be changed in order to provide for a understaneable commit 
+        comment later.<br /><br />The first button on the left may contain the text "Create View" or "Edit View", depending on if a view is selected or 
+        not.<br /><i>Currently there is no functionality behind this button.</i><br /><br />The middle button may contain the text "Add View" or "Add Label" 
+        depending on what is selected. Pressing the button adds the selected view or label to the work list.<br /><br />The bottom button on the left-hand 
+        side is only activated if a view or label is selected in the work list, clicking it will remove the selected work list item.<br /><br />
+        The Work list text box contains the selected views or labels to be used for transfer data. Selecting only one view or label allows only for a
+        singular transfer of data from one development increment, selecting multiple views and/or labels allows for streamed transfer if no Tag is
+        selected in the "Git Version settings" area later.
+    </p>
+    <h3 id="MainWin_GitVerSettings">Git Version Settings area</h3>
+    <p>
+        The "Git Version Settings" area handles necessary settings for the target Git tool.
+        <div style="text-align: left;">
+            <img id="GitVerArea" src="GitVersionSettingsPart.jpg" alt="Git Version Settings" />
+        </div>
+        The "Project" combo box should contain the Git master projects from the login window, if a project was selected during log in it should be 
+        selected here.<br /><br />The "Repo" combo box shall contain all directories that exists in the users work area located at:<br /><i>C:/Users/
+        'user-id'/source/repos</i><br />or<br /><i>H:/source/repos</i><br />The identified directories are "tagged" '(G)' for Git repo or '(N)' for 
+        normal directory.<br /><br />The "Commit" combo box contains all existing commits in the selected target repo.<br /><br />The "Branch" comto box 
+        contains all existing branches in the selected target repo.<br /><br />The "Tag" combo box contains the labels or views from the work list to be 
+        used for data selection. If a view is selected it needs to be changed into a meaningfull commit phrase using the "Change to Git Tag" button.<br />
+        <br />The "Add Project" button is used to add Git main projects to the Git server if they are missing.<br /><i>Currently there is no functionality
+        behind this button.</i><br /><br />The "Add Repo" button starts a window for adding a directory or a repository to the user's work area.<br />
+        <div style="text-align: left;">
+            <img id="AddRepoWin" src="AddRepoGUI.jpg" alt="Add Repo Window" />
+        </div><br />
+        The "Change to Git Tag" button activates a text box over the Tag combo box and allows the user to change the phrase used for commit into a 
+        meaningfull phrase. This is often not necessary when a label is selected.<br /><br />The "SSH-key generation" button is only active if the user 
+        does not have a ".ssh" directory in his/her home directory. Clicking the button generates a SSH-key pair for the user.
+    </p>
+    <h3 id="SepHdlReg">Separation handling area</h3>
+    <p>
+        The "Separation Handling" area is used to select eventual data separation from the source data. 
+        <div style="text-align: left;">
+            <img id="sephdlreg" src="SepHandlingPart.jpg" alt="Separation Handling region" />
+        </div>
+        It is possible to separate:<br />
+        <ul>
+            <li><a href="#BldRel">build related</a></li>
+            <li><a href="#TstRel">test related</a></li>
+            <li><a href="#ThrdPtyRel">third party related</a></li>
+            <li><a href="#DevRel">development related</a></li>
+            <li><a href="#BinExecRel">Binary executables</a></li>
+            <li><a href="#DocRel">Documents</a></li>
+        </ul>
+        <i>Currently there is only a function to store these separated files in a separate directory, depending on the area of separation. If a separated 
+        file allready exists on the target directory for the area the file name will be incremented with one to separate the files.</i>
+    </p>
+    <h4 id="BldRel">Build related</h4>
+    <p>
+        Build related aims for separating build scripts or configuration files used for building the end resulting binary executables. After a transfer 
+        these files will need to be altered to work in the new environment.
+    </p>
+    <h4 id="TstRel">Test related</h4>
+    <p>
+        Test related separation aims to pinpoint the test-scripts used for testing and verifying the product. Both files stored under any directory containing 
+        "test" or "Jenkins" along with ".scr" files are selected here.
+    </p>
+    <h4 id="ThrdPtyRel">Third Party related</h4>
+    <p>
+        This separation selection aims to separate third party code and binaries from the transfer data.<br /><i>This group may need further identifyer 
+        to pick out specific third party data, currently it merely handles "dy4", "tornado_211", and "buster".</i>
+    </p>
+    <h4 id="DevRel">Development related</h4>
+    <p>
+        This separation handling aims to separate development related tools. Currently the separation merely picks out data contained in a directory 
+        containing the "tools" phrase.
+    </p>
+    <h4 id="BinExecRel">Binary Executables</h4>
+    <p>
+        Separation of binary executables aims to pick out the deliverable binary files from the source data. Currently the separation function targets
+        "exe", "com", "inf", "ipa", "osx", "pif", "run", "wsh" files for separation. During a transfer these files should be stored in other version 
+        handling tools than Git, currently the target tools for binary executables are Artifactory or IFS.
+    </p>
+    <h4 id="DocRel">Documents</h4>
+    <p>
+        Separation of documentation aims to pick out the product documentation of the source project. These files shall in a new environment be stored in
+        other version handling tools for documentation. Currently the target tools are Document sollution, DOORS, or IFS.<br />The targeted files has
+        file suffix "pdf", "doc", "docx", "xml", "odt", "html", "htm", "xls", "xlsx", "txt", or "csv".
+    </p>
+    <h3 id="WrkProc_part">Process Handling area</h3>
+    <p>
+        The "Process Handling" area is used to control the transfer process execution.
+        <div style="text-align: left;">
+            <img id="prochdlreg" src="ProcessHandlingPart.jpg" alt="Process Handling region" />
+        </div>
+        The "Process" combo box contains the selectable execution variants depending on user settings.<br /><br />
+        The "Cancel session" button saves session data and closes the session.<br /><br />
+        The "Execute session" executes the selected process.<br /><br />
+        The bottom row text box presents program status and events during execution of the program.
+    </p>
+    <h2 id="WrpProcDescr_part">Work process</h2>
+    <p>
+        This section describes the normal work process for converting VOB(s) to Repo(s).<br /><br />
+        <u>Prerequisite:</u><br />
+        If there is a repository in your local work area that has been used previously, and contains data, it is beneficial to delete the repo and 
+        clone it from the remote repository again. This is done by:<br />
+        <ol>
+            <li id="ol1_1">Open a file browser and navigate to your work area.</li>
+            <li id="ol1_2">Right click on the target reop you want to remove and select "Delete".</li>
+            <li id="ol1_3">Open your "Git Bash" interface and enter the clone command in format:<br />
+                  $ git clone ssh://"Git server":"id"/"path to repo" "work repo name"<br />
+            Where:<br />
+                  "Git server" is your target server, for example "git@uxc005.corp.saab.se".<br />
+                  "id" is the numerical identity string, for example 2222.<br />
+                        <i>(This can be found in your Git server web interface)</i><br />
+                  "path to repo" is the path to your Git repo within the server, for example "project/spk39/frans.git".<br />
+                  "work repo name" is the name your work repo should have.<br />
+                        <i>it is important that it has the same name used in ClearCase, but with an initial capital letter.</i></li>
+        </ol><br />
+        <u>Process:</u><br />
+        <ol>
+            <li id="ol2_1">Start the ClearCase2Git tool.</li>
+            <li id="ol2_2">The log-in window ends up behind the main window, you need to click on the log-in window to set the focus on it.</li>
+            <li id="ol2_3">Enter your corporate id and your corp-password.<br />
+            <i>If you get confused or interrupted while entering the password you can use the "all-seeing-eye" button to toggle password masking.</i><br />
+            <ol>
+                <li id="ol2_3_1">If this is your first time using the tool the "New user" bullet will become set and the data fields changes to receive information.</li>
+                <li id="ol2_3_2">Enter the required data in each interface box.</li>
+                <li id="ol2_3_3">The "Git Web", "CC Srvs", and "Git M.Proj." areas change between text- and combo-boxes making it possible to enter multiple selections. 
+                Depending on which of these areas have been edited the middle button on the bottom row will alter the text on it. 
+                That button is used to enter the written information in your user data.</li>
+            </ol>
+            </li>
+            <li id="ol2_4">Click the "Check" button.
+            <ol>
+                <li id="ol2_4_1">The bullet next to your user id shall change text to "Edit user". This box can be set to allow editing your user data.</li>
+            </ol>
+            </li>
+            <li id="ol2_5">Select the "Git web" that corresponds to your target Git server.
+            <ol>
+                <li id="ol2_5_1">A web server that is not online is indicated with parenthesis around the presented address.</li>
+                <li id="ol2_5_2">Selecting the "Add Git Web..." option allows for entering a new Git web server to your list. Selecting this option will set the 
+                middle button on the bottom row to "Add Git Web" when something is entered in the text box.</li>
+                <li id="ol2_5_3">Selecting a Git Web path changes the middle button on the bottom row to contain "Remove Git". Clicking that button removes the 
+                selected path from the list.</li>
+            </ol>
+            </li>
+            <li id="ol2_6">Select the "CC Srvs" that corresponds to your source ClearCase server.
+            <ol>
+                <li id="ol2_6_1">A ClearCase server that is not online is indicated with parenthesis around the server name.</li>
+                <li id="ol2_6_2">Selecting the "Add server..." option allows for entering a new ClearCase server to your list. Selecting this option will set the 
+                middle button on the bottom row to "Add CC" when something is entered in the text box.</li>
+                <li id="ol2_6_3">Selecting a ClearCase server changes the middle button on the bottom row to contain "Reove CC". Clicking that button removes 
+                the selected ClearCase server from the list.</li>
+            </ol>
+            </li>
+            <li id="ol2_7">It is optional to set the Git master project information at this stage.
+            <ol>
+                <li id="ol2_7_1">Selecting the "Add project..." option allows for entering a new Git master project to your list. Seleccting this option will set 
+                the middle button on the bottom row to "Add Git M.Proj." when something is entered in the text box.</li>
+                <li id="ol2_7_2">Selecting a Git master project changes the middle button on the bottom row to contain "Remove Proj.". Clicking that button 
+                removes the selected master projewct from the list.</li>
+            </ol>
+            </li>
+            <li id="ol2_8">Click "Login".</li>
+            <li id="ol2_9">In the "Top menu" under the "ClearCase" menu, select your ClearCase version.</li>
+            <li id="ol2_10">In the now activated "Region" combo box, select your work operative region, i.e., "avi_win" or "avi_linux"*.<br />
+            <i>*Interface to a Linux operative is not implemented in this version of the tool.</i></li>
+            <li id="ol2_11">In the now activated "Drive" combo box, select the drive letter mapped to the dynamic ClearCase view used as source.</li>
+            <li id="ol2_12">In the now activated "VOB" combo box, select the sub VOB containing your source data.</li>
+            <li id="ol2_13">Either select a view or a label that identifies the files to be transferred.<br />
+            The CM handling in some projects relies on delivery views and other projects relies on delivery labels. It is possible to mix views and labels in 
+            a work session.</li>
+            <li id="ol2_14">Click on the now activated "Add" button to add the selected CM item to the work list.
+            <ol>
+                <li id="ol2_14_1">Repeat setp <a href="#ol2_13">13</a> and <a href="#ol2_14">14</a> until all views or labels to be used for identifying 
+                transfer-files are added to the work list.</li>
+                <li id="ol2_14_2">You can remove a faulty added, or faulty placed, CM item from the work list by selecting it and clicking the "Remov" button.</li>
+            </ol>
+            </li>
+            <li id="ol2_15">In the "Top menu" under the now activated "Git related"==>"Git" menu, select your Git version.</li>
+            <li id="ol2_16">Select the used transfer protocol.*<br />
+            <i>*Currently, use the "HTTPS" protocol since the support software cannot handle "SSH".</i></li>
+            <li id="ol2_17">Check that the now active "Project" combo bopx is set to the correct Git master project or change it to the correct one.</li>
+            <li id="ol2_18">In the now active "Repo" combo box, select the target repository in your work area.<br />
+            <i>Git repositories are indicated with a leading "(G)" while normal directories are indicated with a leading "(N)".</i>
+            <ol>
+                <li id="ol2_18_1">If your work area is lacking the correct target repo it can be added using the "Add Repo" button. The added folder can be 
+                a Git repo or a standard directory.</li>
+                <li id="ol2_18_2">If a standard directory is created, transfer to that directory is limited to "Copy to Folder" since there is no corresponding 
+                Git information.</li>
+                <li id="ol2_18_3">If a Git repo is created, transfer to that directory is limited to at the most "Copy, Add, & Commit" since there is no 
+                corresponding remote repository.</li>
+            </ol>
+            </li>
+            <li id="ol2_19">In the now active "Branch" combo box, select the branch where your data should be committed to.</li>
+            <li id="ol2_20">In the now active "Tag" combo box, select the label or view to use for your transfer.
+            <ol>
+                <li id="ol2_20_1">Selecting a tag sets the transfer process to single transfer mode, transferring only one set of files indicated by the 
+                selected view or label.</li>
+                <li id="ol2_20_2"><b>NOT</b> selecting a tag or a view sets the transfer process to streamed transfer mode, transferring the files indicated 
+                by every view or label in the work list.</li>
+                <li id="ol2_20_3">If the selected view or label does not have the correct format for a commit comment in Git, this can be changed using the 
+                "Change to Git Tag" button.</li>
+            </ol>
+            </li>
+            <li id="ol2_21">If separation of specific data files should be done during the transfer this can be indicated by the bullet setting and target 
+            selection in the "Separation handling" area.<br /><i>Currently this merely copies the files to separate directories for later handling. Streamed 
+            transfer with separation set causes the existence of multiple versions of the same file to be named with an incremented version number.</i></li>
+            <li id="ol2_22">Select the work process you want to perform. The available processes depend on previous selections.
+            <ul>
+                <li id="ol2_22_1">"Copy to Folder" copies the indicated files to the set target directory or repo. This is merely valid in single transfer mode.</li>
+                <li id="ol2_22_2">"Copy & Add" copies the indicated files to the target repo and adds them to the Git staging area. This is merely valid in the 
+                single transfer mode.</li>
+                <li id="ol2_22_3">"Copy, Add, & Commit" copies the indicated files to the target repo, adds them to the Git staging area, and commits them to 
+                the local repository.</li>
+                <li id="ol2_22_4">"Copy, Add, Commit, & Push" copies the indicated files to the target repo, adds them to the Git staging area, commits them to
+                    the local repository, and pushes them to the remote repository.</li>
+            </ul>
+            </li>
+            <li id="ol2_23">Click the "Execute session" button.</li>
+        </ol>
+    </p>
+</body>
+</html>
